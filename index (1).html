@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ScheduleSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#0d0f14; --s1:#141720; --s2:#1c2030; --s3:#232840;
+  --b:rgba(255,255,255,0.07); --bh:rgba(255,255,255,0.14);
+  --t:#f0f2f8; --tm:#6b7498; --td:#3d4460;
+  --ac:#5b6ef5; --al:#7b8fff; --ad:rgba(91,110,245,0.15);
+  --gr:#3ecf8e; --gd:rgba(62,207,142,0.12);
+  --am:#f5a623; --amd:rgba(245,166,35,0.12);
+  --re:#f56060; --rd:rgba(245,96,96,0.12);
+  --pu:#a78bfa; --pd:rgba(167,139,250,0.12);
+  --r:10px; --rl:14px; --rxl:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;font-size:14px;line-height:1.6}
+/* layout */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:220px;min-height:100vh;background:var(--s1);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh}
+.logo{padding:20px 20px 16px;border-bottom:1px solid var(--b)}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--ac);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--tm);margin-top:1px}
+.nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-sec{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--td);text-transform:uppercase;padding:0 8px;margin:12px 0 6px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--tm);transition:all .15s;user-select:none;margin-bottom:2px}
+.ni:hover{background:var(--s2);color:var(--t)}
+.ni.active{background:var(--ad);color:var(--al);font-weight:500}
+.ni-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.lbadge{margin-left:auto;font-size:10px;background:var(--amd);color:var(--am);padding:2px 6px;border-radius:6px;font-weight:500}
+.sb-foot{padding:14px 16px;border-top:1px solid var(--b);font-size:11px;color:var(--td)}
+.main{flex:1;padding:28px 32px;overflow-y:auto;min-width:0}
+/* page header */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--b)}
+.ph-t{font-size:22px;font-weight:600;letter-spacing:-.4px}
+.ph-s{font-size:13px;color:var(--tm);margin-top:3px}
+/* views */
+.view{display:none;animation:fi .2s ease}
+.view.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* card */
+.card{background:var(--s1);border:1px solid var(--b);border-radius:var(--rl);padding:20px;margin-bottom:16px}
+.ct{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);margin-bottom:14px}
+/* grid helpers */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+/* form */
+.fg{margin-bottom:14px}
+.fg label{font-size:11px;font-weight:500;color:var(--tm);display:block;margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+input[type=text],input[type=time],input[type=password],select{width:100%;padding:9px 12px;font-size:13px;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);color:var(--t);font-family:'DM Sans',sans-serif;transition:border-color .15s;outline:none}
+input:focus,select:focus{border-color:var(--ac)}
+select option{background:var(--s2)}
+/* buttons */
+.btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--t);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--s3);border-color:var(--bh)}
+.btn:active{transform:scale(.98)}
+.btn-p{background:var(--ac);color:#fff;border-color:var(--ac)}
+.btn-p:hover{background:var(--al);border-color:var(--al)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-xs{padding:4px 9px;font-size:11px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+/* metric */
+.metric{background:var(--s1);border:1px solid var(--b);border-radius:var(--rl);padding:16px 18px;text-align:center}
+.mv{font-size:28px;font-weight:600;letter-spacing:-.5px}
+.ml{font-size:11px;color:var(--tm);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+/* day grid (my schedule) */
+.dg7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dc{background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:8px 6px;cursor:pointer;transition:all .15s;min-height:70px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.dc:hover{border-color:var(--bh);background:var(--s3)}
+.dc.sel{border-color:var(--ac);background:var(--ad)}
+.dc.hase{border-color:rgba(91,110,245,.3)}
+.dcn{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tm)}
+.dcnum{font-size:16px;font-weight:600}
+.dctag{font-size:9px;padding:2px 6px;border-radius:5px;font-weight:500}
+.tw{background:var(--ad);color:var(--al)}.tr{background:var(--gd);color:var(--gr)}
+.tt2{background:var(--amd);color:var(--am)}.to{background:rgba(255,255,255,.04);color:var(--td)}
+.dep{background:var(--s2);border:1px solid var(--b);border-radius:var(--rl);padding:16px;margin-top:12px}
+.dep h4{font-size:12px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+/* member chips */
+.mchips{display:flex;flex-wrap:wrap;gap:8px}
+.mchip{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:7px 12px;font-size:12px}
+.mrm{cursor:pointer;color:var(--td);font-size:14px;line-height:1;transition:color .1s}
+.mrm:hover{color:var(--re)}
+/* drag / heatmap grid */
+.dgwrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--b)}
+.dgheat,.dgdrag{display:grid;grid-template-columns:52px repeat(7,1fr);min-width:640px;user-select:none;-webkit-user-select:none}
+.dgcorner{background:var(--s2);border-bottom:1px solid var(--b);border-right:1px solid var(--b);position:sticky;left:0;z-index:3}
+.dgdh{background:var(--s2);border-bottom:1px solid var(--b);border-right:1px solid var(--b);padding:8px 4px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--tm)}
+.dgdh span{display:block;font-size:14px;font-weight:600;color:var(--t);letter-spacing:0;margin-top:1px}
+.dgtl{background:var(--s2);border-right:1px solid var(--b);border-bottom:1px solid rgba(255,255,255,.03);padding:0 6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--td);display:flex;align-items:flex-start;justify-content:flex-end;padding-top:3px;height:28px;position:sticky;left:0;z-index:1}
+.dgc{height:28px;border-right:1px solid rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.03);cursor:crosshair;transition:background .05s}
+.dgc.ht{border-bottom-color:rgba(255,255,255,.07)}
+.dgc.blk{background:rgba(245,96,96,.22)!important}
+.dgc.blk.ht{border-bottom-color:rgba(245,96,96,.18)!important}
+.dgc.best{background:rgba(62,207,142,.38)!important;border-color:rgba(62,207,142,.25)!important}
+.dgc.best.ht{border-bottom-color:rgba(62,207,142,.4)!important}
+.dgc.mc{cursor:default}
+.dgc.mc:hover{filter:brightness(1.25)}
+/* drag summary */
+.dgsumm{margin-top:12px;padding:10px 14px;background:var(--s2);border-radius:var(--r);border:1px solid var(--b);font-size:12px;color:var(--tm);min-height:36px}
+.dgsumm strong{color:var(--t)}
+/* time mode toggle */
+.tmode-btn{padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--tm);font-family:'DM Sans',sans-serif;transition:all .15s}
+.tmode-btn:hover{color:var(--t)}
+.tmode-active{background:var(--s3)!important;color:var(--t)!important;border-radius:calc(var(--r) - 1px)}
+/* day toggle pills */
+.daypill{padding:6px 12px;font-size:12px;font-weight:500;border-radius:20px;cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--tm);font-family:'DM Sans',sans-serif;transition:all .15s;user-select:none}
+.daypill:hover{border-color:var(--bh);color:var(--t)}
+.daypill.dpsel{background:var(--ad);border-color:rgba(91,110,245,.5);color:var(--al)}
+.daypill.dpred{background:var(--rd);border-color:rgba(245,96,96,.4);color:var(--re)}
+/* preset chips */
+.preset-chip{padding:5px 11px;font-size:11px;font-weight:500;border-radius:var(--r);cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--tm);font-family:'DM Sans',sans-serif;transition:all .15s}
+.preset-chip:hover{background:var(--s3);border-color:var(--bh);color:var(--t)}
+/* per-person strips */
+.pswrap{min-width:640px}
+.pshdr{display:grid;grid-template-columns:52px repeat(7,1fr)}
+.pshc{background:var(--s2);border-bottom:1px solid var(--b);border-right:1px solid var(--b);height:32px;position:sticky;left:0;z-index:3}
+.pshday{background:var(--s2);border-bottom:1px solid var(--b);border-right:1px solid var(--b);height:32px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--tm);gap:5px}
+.pshday span{font-size:13px;font-weight:600;color:var(--t);letter-spacing:0}
+.psrow{display:grid;grid-template-columns:52px repeat(7,1fr)}
+.pslbl{background:var(--s2);border-right:1px solid var(--b);border-bottom:1px solid rgba(255,255,255,.025);display:flex;align-items:center;justify-content:flex-end;padding:0 6px;height:22px;position:sticky;left:0;z-index:1}
+.pslblt{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44px}
+.pssl{height:22px;border-right:1px solid rgba(255,255,255,.025);border-bottom:1px solid rgba(255,255,255,.025)}
+.psdiv{display:grid;grid-template-columns:52px repeat(7,1fr)}
+.psdivl{background:var(--s2);border-right:1px solid var(--b);display:flex;align-items:center;justify-content:flex-end;padding-right:5px;font-size:9px;font-family:'DM Mono',monospace;color:var(--td);position:sticky;left:0;z-index:1;height:18px}
+.psdivc{border-right:1px solid rgba(255,255,255,.025);height:18px;display:flex;align-items:center}
+.psdivline{width:100%;height:1px;background:rgba(255,255,255,.06)}
+/* best pill */
+.bpill{display:inline-flex;align-items:center;gap:5px;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.3);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--gr);font-family:'DM Mono',monospace;white-space:nowrap}
+.bpill .bpc{background:rgba(62,207,142,.2);padding:1px 6px;border-radius:5px;font-weight:600}
+/* availability */
+.avdh{font-size:11px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;padding:8px 0 6px;margin-top:12px;border-top:1px solid var(--b)}
+.avdh:first-child{border-top:none;margin-top:0}
+.avslot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);margin-bottom:6px;transition:border-color .15s}
+.avslot:hover{border-color:var(--bh)}
+.avtime{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+.avnames{font-size:11px;color:var(--tm);margin-top:2px}
+.cpill{background:var(--gd);color:var(--gr);padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600}
+/* AI */
+.aichips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.aichip{padding:7px 14px;font-size:12px;font-weight:500;border-radius:var(--r);cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--tm);font-family:'DM Sans',sans-serif;transition:all .15s}
+.aichip:hover{background:var(--ad);border-color:rgba(91,110,245,.4);color:var(--al)}
+.aiout{background:var(--s2);border:1px solid var(--b);border-radius:var(--rl);padding:18px;min-height:160px;font-size:13px;line-height:1.7;color:var(--t);white-space:pre-wrap}
+.airow{display:flex;gap:8px}
+.airow input{flex:1}
+/* lock */
+.lock{display:none;position:fixed;inset:0;background:rgba(13,15,20,.95);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center}
+.lock.show{display:flex}
+.lockbox{background:var(--s1);border:1px solid var(--b);border-radius:var(--rxl);padding:36px 40px;width:100%;max-width:360px;text-align:center;animation:fi .25s ease}
+.lockicon{font-size:36px;margin-bottom:16px}
+.locktitle{font-size:18px;font-weight:600;letter-spacing:-.3px;margin-bottom:6px}
+.locksub{font-size:13px;color:var(--tm);margin-bottom:24px}
+.lockerr{font-size:12px;color:var(--re);margin-top:8px;min-height:16px}
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s3);border:1px solid var(--bh);border-radius:var(--r);padding:10px 16px;font-size:13px;color:var(--t);transform:translateY(60px);opacity:0;transition:all .25s ease;z-index:200;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+/* misc */
+.empty{text-align:center;padding:40px 20px;color:var(--tm);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:10px}
+.pulse{animation:pls 1.5s ease infinite}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.4}}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--bh)}
+/* tooltip */
+.mctt{display:none;position:fixed;background:var(--s3);border:1px solid var(--bh);border-radius:var(--r);padding:8px 12px;font-size:11px;line-height:1.6;z-index:50;pointer-events:none;max-width:220px}
+/* inventory */
+.invsbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.invsbar input{flex:1;font-size:14px;padding:10px 14px}
+.invfrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.boxbtn{padding:5px 12px;font-size:11px;font-weight:600;border-radius:20px;cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--tm);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.boxbtn:hover{border-color:var(--bh);color:var(--t)}
+.boxbtn.active{background:var(--ad);border-color:rgba(91,110,245,.4);color:var(--al)}
+.invtbl{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.invtbl thead th{background:var(--s2);padding:10px 14px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tm);border-bottom:1px solid var(--b);text-align:left;position:sticky;top:0;z-index:2;cursor:pointer}
+.invtbl tbody tr:hover td{background:rgba(255,255,255,.025)}
+.invtbl td{padding:10px 14px;border-bottom:1px solid var(--b);vertical-align:middle}
+.invtbl td.iname{font-weight:500}
+.invtbl tr.ihl td{background:rgba(91,110,245,.08)}
+.invtbl tr.ihl td.iname{color:var(--al)}
+.bbox{display:inline-flex;align-items:center;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap}
+.qbadge{display:inline-flex;align-items:center;justify-content:center;min-width:28px;padding:2px 7px;border-radius:6px;font-size:12px;font-weight:600;background:var(--s3);color:var(--tm);font-family:'DM Mono',monospace}
+.qbadge.hq{background:var(--ad);color:var(--al)}
+.invaibox{background:var(--s2);border:1px solid var(--b);border-radius:var(--rl);padding:14px 16px;font-size:13px;line-height:1.7;color:var(--t);white-space:pre-wrap;margin-top:10px;min-height:48px}
+.ihl{background:rgba(91,110,245,.25);border-radius:3px;padding:0 2px}
+.scount{font-size:12px;color:var(--tm);margin-left:4px;white-space:nowrap}
+.invstats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.invstat{background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:8px 14px;font-size:12px;color:var(--tm)}
+.invstat strong{color:var(--t);font-size:15px;display:block}
+@media(max-width:768px){.sidebar{display:none}.main{padding:16px}.g3{grid-template-columns:1fr 1fr}.g4{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div class="lock" id="lock">
+  <div class="lockbox">
+    <div class="lockicon">🔒</div>
+    <div class="locktitle" id="lock-title">Protected</div>
+    <div class="locksub" id="lock-sub">Enter the password to continue.</div>
+    <input type="password" id="lock-inp" placeholder="Password" onkeydown="if(event.key==='Enter')submitLock()"/>
+    <div class="lockerr" id="lock-err"></div>
+    <button class="btn btn-p" style="width:100%;margin-top:12px" onclick="submitLock()">Unlock</button>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="closeLock()">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="mctt" id="mctt"></div>
+
+<!-- API KEY MODAL -->
+<div class="lock" id="apikey-modal">
+  <div class="lockbox" style="max-width:420px">
+    <div class="lockicon">🔑</div>
+    <div class="locktitle">Anthropic API Key</div>
+    <div class="locksub" style="margin-bottom:16px">Required for AI Analysis and AI Inventory Search. Your key is stored only in this browser tab and never sent anywhere except directly to Anthropic.</div>
+    <div style="text-align:left;font-size:12px;color:var(--tm);margin-bottom:10px">
+      Get a free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--al)">console.anthropic.com</a> → API Keys
+    </div>
+    <input type="password" id="apikey-inp" placeholder="sk-ant-…" style="font-family:'DM Mono',monospace;font-size:12px"/>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <input type="checkbox" id="apikey-show" onchange="toggleKeyVis()" style="width:auto;accent-color:var(--ac)"/>
+      <label for="apikey-show" style="font-size:12px;color:var(--tm);cursor:pointer;text-transform:none;letter-spacing:0;margin:0">Show key</label>
+    </div>
+    <div class="lockerr" id="apikey-err"></div>
+    <button class="btn btn-p" style="width:100%;margin-top:12px" onclick="saveAPIKey()">Save &amp; continue</button>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="closeAPIKeyModal()">Cancel</button>
+    <div style="margin-top:14px;font-size:11px;color:var(--td);line-height:1.5">
+      Your key goes directly from your browser to <code style="font-size:10px;background:var(--s2);padding:1px 4px;border-radius:3px">api.anthropic.com</code> — this site never stores or transmits it elsewhere.
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <div class="logo-icon">📅</div>
+      <div><div class="logo-text">ScheduleSync</div><div class="logo-sub">Team coordination</div></div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-sec">Schedule</div>
+    <div class="ni active" onclick="switchTab('input',this)"><span class="ni-icon">✏️</span> My Schedule</div>
+    <div class="ni" onclick="switchTab('drag',this)"><span class="ni-icon">🟥</span> Block My Time</div>
+    <div class="ni" onclick="switchTab('master',this)"><span class="ni-icon">🗓️</span> Master Calendar</div>
+    <div class="nav-sec">Insights</div>
+    <div class="ni" onclick="requireAuth('availability',this)"><span class="ni-icon">🟢</span> Availability<span class="lbadge">🔒</span></div>
+    <div class="ni" onclick="requireAuth('analysis',this)"><span class="ni-icon">✨</span> Analysis<span class="lbadge">🔒</span></div>
+    <div class="nav-sec">Resources</div>
+    <div class="ni" onclick="switchTab('inventory',this)"><span class="ni-icon">📦</span> Inventory</div>
+  </nav>
+  <div class="sb-foot">Team members: <strong id="sbcount">0</strong></div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- MY SCHEDULE -->
+<div id="tab-input" class="view active">
+  <div class="ph">
+    <div><div class="ph-t">My Schedule</div><div class="ph-s">Set your availability for the week</div></div>
+    <button class="btn btn-p btn-sm" onclick="document.getElementById('new-name').focus()">+ Add member</button>
+  </div>
+  <div class="card">
+    <div class="ct">Team members</div>
+    <div class="g2" style="margin-bottom:12px">
+      <div class="fg" style="margin:0"><label>Your name</label>
+        <select id="sel-member" onchange="loadMemberSched()"><option value="">— select —</option></select>
+      </div>
+      <div class="fg" style="margin:0"><label>Add new member</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="new-name" placeholder="Full name…"/>
+          <button class="btn btn-p btn-sm" onclick="addMember()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="mchips" id="mchips"><div style="font-size:12px;color:var(--td);padding:4px 0">No members yet.</div></div>
+  </div>
+  <div id="scard" style="display:none">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="ct" style="margin:0">Week view</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-sm" onclick="prevWk()">←</button>
+          <div id="wk-lbl" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--tm);min-width:160px;text-align:center"></div>
+          <button class="btn btn-sm" onclick="nextWk()">→</button>
+          <select id="mpick" onchange="goMonth()" style="width:auto;padding:6px 10px;font-size:12px"></select>
+        </div>
+      </div>
+      <div class="dg7" id="daygrid"></div>
+      <div class="dep" id="dep" style="display:none">
+        <h4>Editing: <span id="edlbl" style="color:var(--t);font-weight:600"></span></h4>
+        <div class="g3">
+          <div class="fg" style="margin:0"><label>Status</label>
+            <select id="dstat"><option value="working">Working</option><option value="remote">Remote</option><option value="travel">Traveling</option><option value="off">Day off</option></select>
+          </div>
+          <div class="fg" style="margin:0"><label>Start</label><input type="time" id="dstart" value="09:00"/></div>
+          <div class="fg" style="margin:0"><label>End</label><input type="time" id="dend" value="17:00"/></div>
+        </div>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn btn-p btn-sm" onclick="saveDay()">Save day</button>
+          <button class="btn btn-sm" onclick="clearDay()">Clear</button>
+          <button class="btn btn-sm" onclick="applyWk()">Apply to whole week</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BLOCK MY TIME -->
+<div id="tab-drag" class="view">
+  <div class="ph">
+    <div><div class="ph-t">Block My Time</div><div class="ph-s">Enter hours or drag the grid to set your availability</div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn btn-sm" onclick="prevDWk()">←</button>
+      <div id="dwk-lbl" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--tm);min-width:160px;text-align:center;line-height:2"></div>
+      <button class="btn btn-sm" onclick="nextDWk()">→</button>
+    </div>
+  </div>
+
+  <!-- Who + actions -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="ct" style="margin-bottom:10px">Who are you?</div>
+    <div class="g2">
+      <div class="fg" style="margin:0"><label>Your name</label>
+        <select id="drag-member" onchange="onDMChange()"><option value="">— select —</option></select>
+      </div>
+      <div class="fg" style="margin:0;display:flex;flex-direction:column;justify-content:flex-end">
+        <div style="display:flex;gap:8px;align-items:center;padding-top:18px">
+          <button class="btn btn-sm" onclick="clearDWk()" style="color:var(--re);border-color:rgba(245,96,96,.3)">Clear week</button>
+          <button class="btn btn-p btn-sm" onclick="saveDBlocks()">Save →</button>
+          <span id="dsavehint" style="font-size:11px;color:var(--td)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Time input panel -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="ct" style="margin:0">Enter hours by time range</div>
+      <!-- Mode toggle -->
+      <div style="display:flex;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);overflow:hidden">
+        <button id="mode-unavail" class="tmode-btn tmode-active" onclick="setTimeMode('unavailable')">🚫 Can't work</button>
+        <button id="mode-avail" class="tmode-btn" onclick="setTimeMode('available')">✅ Can work</button>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--tm);margin-bottom:14px" id="mode-hint">
+      Mark the times you <strong style="color:var(--re)">cannot work</strong> — these will be blocked on your calendar.
+    </div>
+
+    <!-- Day selector + time inputs -->
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:500;color:var(--tm);letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:8px">Apply to days</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="day-toggles">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+    <div class="g3" style="margin-bottom:12px">
+      <div class="fg" style="margin:0"><label>From time</label><input type="time" id="ti-from" value="09:00"/></div>
+      <div class="fg" style="margin:0"><label>To time</label><input type="time" id="ti-to" value="17:00"/></div>
+      <div class="fg" style="margin:0;display:flex;flex-direction:column;justify-content:flex-end">
+        <button class="btn btn-p btn-sm" onclick="applyTimeRange()" style="width:100%">Apply range</button>
+      </div>
+    </div>
+    <!-- Preset chips -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;color:var(--tm)">Presets:</span>
+      <button class="preset-chip" onclick="applyPreset('morning')">Mornings 6–12</button>
+      <button class="preset-chip" onclick="applyPreset('afternoon')">Afternoons 12–18</button>
+      <button class="preset-chip" onclick="applyPreset('evening')">Evenings 18–24</button>
+      <button class="preset-chip" onclick="applyPreset('workday')">Workday 9–17</button>
+      <button class="preset-chip" onclick="applyPreset('weekend')">Weekends</button>
+      <button class="preset-chip" onclick="applyPreset('allday')">All day</button>
+    </div>
+  </div>
+
+  <!-- Drag grid -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:12px;color:var(--td);display:flex;align-items:center;gap:6px">
+        <div style="width:8px;height:8px;border-radius:2px;background:rgba(245,96,96,.5);flex-shrink:0"></div>
+        Or drag directly on the grid — left-click to block, right-click to clear.
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tm)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(245,96,96,.3)"></div>Unavailable</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tm)"><div style="width:12px;height:12px;border-radius:3px;background:var(--s3);border:1px solid var(--b)"></div>Available</div>
+      </div>
+    </div>
+    <div class="dgwrap"><div class="dgdrag" id="draggrid"></div></div>
+    <div class="dgsumm" id="dgsumm">Select your name above to start.</div>
+  </div>
+</div>
+
+<!-- MASTER CALENDAR -->
+<div id="tab-master" class="view">
+  <div class="ph">
+    <div><div class="ph-t">Master Calendar</div><div class="ph-s">Team availability heatmap — everyone's blocked times at once</div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn btn-sm" onclick="prevMWk()">←</button>
+      <div id="mwk-lbl" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--tm);min-width:160px;text-align:center;line-height:2"></div>
+      <button class="btn btn-sm" onclick="nextMWk()">→</button>
+    </div>
+  </div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="metric"><div class="mv" id="mc-mem" style="color:var(--al)">0</div><div class="ml">members</div></div>
+    <div class="metric"><div class="mv" id="mc-best" style="color:var(--gr);font-size:16px">—</div><div class="ml">best slot</div></div>
+    <div class="metric"><div class="mv" id="mc-peak" style="color:var(--pu);font-size:18px">—</div><div class="ml">top available day</div></div>
+    <div class="metric"><div class="mv" id="mc-free" style="color:var(--am)">0</div><div class="ml">all-free slots</div></div>
+  </div>
+  <div class="card" style="padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="ct" style="margin:0">Team heatmap — unavailable blocks</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--tm);align-items:center">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:3px;background:var(--s3);border:1px solid var(--b);display:inline-block"></span>All free</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:3px;background:rgba(245,166,35,.35);display:inline-block"></span>Some busy</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:3px;background:rgba(245,96,96,.6);display:inline-block"></span>Most busy</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:3px;background:rgba(62,207,142,.45);border:1px solid rgba(62,207,142,.6);display:inline-block"></span>Best windows</span>
+      </div>
+    </div>
+    <div class="dgwrap"><div class="dgheat" id="mheat"></div></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--b)">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tm);margin-bottom:8px">Top available windows</div>
+      <div id="mc-blist" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
+  </div>
+  <div class="card" style="padding:16px">
+    <div class="ct">Per-person schedule rows</div>
+    <div style="overflow-x:auto"><div id="psgrid"></div></div>
+  </div>
+</div>
+
+<!-- AVAILABILITY -->
+<div id="tab-availability" class="view">
+  <div class="ph">
+    <div><div class="ph-t">Availability</div><div class="ph-s">Find when your team is free</div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <label style="font-size:12px;color:var(--tm)">Min:</label>
+      <select id="minp" onchange="renderAvail()" style="width:auto;padding:6px 10px;font-size:12px">
+        <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option>
+      </select>
+      <button class="btn btn-sm" onclick="prevAWk()">←</button>
+      <div id="awk-lbl" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--tm);min-width:160px;text-align:center"></div>
+      <button class="btn btn-sm" onclick="nextAWk()">→</button>
+    </div>
+  </div>
+  <div class="g3" style="margin-bottom:16px">
+    <div class="metric"><div class="mv" id="av-mem" style="color:var(--al)">0</div><div class="ml">members</div></div>
+    <div class="metric"><div class="mv" id="av-slots" style="color:var(--gr)">0</div><div class="ml">open slots</div></div>
+    <div class="metric"><div class="mv" id="av-max" style="color:var(--pu)">0</div><div class="ml">max simultaneous</div></div>
+  </div>
+  <div class="card"><div class="ct">Overlapping windows</div><div id="avlist"></div></div>
+</div>
+
+<!-- ANALYSIS -->
+<div id="tab-analysis" class="view">
+  <div class="ph"><div><div class="ph-t">Analysis</div><div class="ph-s">AI-powered scheduling insights</div></div></div>
+  <!-- API key banner -->
+  <div id="apikey-banner" class="card" style="padding:14px 18px;border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.07);margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--am)">🔑 API key required for AI features</div>
+        <div style="font-size:12px;color:var(--tm);margin-top:2px">Add your free Anthropic API key to enable AI analysis and inventory search.</div>
+      </div>
+      <button class="btn btn-sm" onclick="openAPIKeyModal()" style="border-color:rgba(245,166,35,.4);color:var(--am);white-space:nowrap">Add API key</button>
+    </div>
+  </div>
+  <div id="apikey-set-banner" class="card" style="padding:10px 18px;border-color:rgba(62,207,142,.3);background:rgba(62,207,142,.07);margin-bottom:12px;display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="font-size:12px;color:var(--gr)">✓ API key active — AI features enabled</div>
+      <button class="btn btn-xs" onclick="openAPIKeyModal()" style="border-color:rgba(62,207,142,.3);color:var(--gr)">Change key</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Quick insights</div>
+    <div class="aichips">
+      <div class="aichip" onclick="runAI('Find the best times this week when the most team members are available simultaneously.')">🗓 Best meeting times</div>
+      <div class="aichip" onclick="runAI('Identify coverage gaps — times when no one is working. How to improve coverage?')">⚠️ Coverage gaps</div>
+      <div class="aichip" onclick="runAI('Who has the most availability? Who is busiest? Summarize workload balance.')">⚖️ Workload balance</div>
+      <div class="aichip" onclick="runAI('Suggest the optimal day and time for a 1-hour all-hands meeting.')">📣 All-hands planner</div>
+      <div class="aichip" onclick="runAI('Give a full weekly summary: who is working when, any conflicts, and top recommendations.')">📋 Full summary</div>
+    </div>
+    <div class="airow" style="margin-bottom:12px">
+      <input type="text" id="aiq" placeholder="Ask anything about your team schedule…" onkeydown="if(event.key==='Enter')runAI(this.value)"/>
+      <button class="btn btn-p btn-sm" onclick="runAI(document.getElementById('aiq').value)">Ask →</button>
+    </div>
+    <div class="aiout" id="aiout">Add team schedules, then click a prompt or ask your own question.</div>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div id="tab-inventory" class="view">
+  <div class="ph">
+    <div><div class="ph-t">Inventory</div><div class="ph-s">CarbonCLAIR equipment — search by item name or box</div></div>
+    <button class="btn btn-sm" onclick="invExport()">↓ Export CSV</button>
+  </div>
+  <div class="invstats" id="invstats"></div>
+  <div class="invsbar">
+    <input type="text" id="invsearch" placeholder="Search by item name, box, or describe what you're looking for…" oninput="invSearch(this.value)" onkeydown="if(event.key==='Enter')invAISearch(this.value)"/>
+    <button class="btn btn-p btn-sm" onclick="invAISearch(document.getElementById('invsearch').value)">AI Search ✨</button>
+    <button class="btn btn-sm" onclick="invReset()">Reset</button>
+    <span class="scount" id="invcnt"></span>
+  </div>
+  <div id="invaiarea" style="display:none;margin-bottom:12px">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tm);margin-bottom:6px">AI match result</div>
+    <div class="invaibox pulse" id="invaiout">Searching…</div>
+  </div>
+  <div class="invfrow" id="invfilters"></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto;max-height:62vh;overflow-y:auto">
+      <table class="invtbl">
+        <thead><tr>
+          <th onclick="invSort('name')">Item <span id="si-name">↕</span></th>
+          <th onclick="invSort('qty')" style="width:90px">Qty <span id="si-qty">↕</span></th>
+          <th onclick="invSort('box')" style="width:160px">Box <span id="si-box">↕</span></th>
+        </tr></thead>
+        <tbody id="invtbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── CONSTANTS ──
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COLORS=[
+  {bg:'rgba(91,110,245,0.2)',tx:'#7b8fff'},{bg:'rgba(62,207,142,0.15)',tx:'#3ecf8e'},
+  {bg:'rgba(245,166,35,0.15)',tx:'#f5a623'},{bg:'rgba(167,139,250,0.15)',tx:'#a78bfa'},
+  {bg:'rgba(245,96,96,0.15)',tx:'#f56060'},{bg:'rgba(56,189,248,0.15)',tx:'#38bdf8'},
+];
+// !! Change this password !!
+const PASSWORD = 'schedule2024';
+// Drag grid: 6am–midnight, 30-min slots
+const DS=6, DE=24, SPH=2, SLOTS=(DE-DS)*SPH;
+
+// ── STATE ──
+let members=[], schedules={}, blocked={};
+let curWk=gMon(new Date()), masterWk=gMon(new Date()), avWk=gMon(new Date()), dragWk=gMon(new Date());
+let selDay=null, curMem=null, dragMem=null;
+let dragging=false, dragMode='block';
+let unlocked=false, pendTab=null, pendNav=null;
+
+// ── DATE UTILS ──
+function gMon(d){const dt=new Date(d),day=dt.getDay();dt.setDate(dt.getDate()-day+(day===0?-6:1));dt.setHours(0,0,0,0);return dt}
+function addD(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt}
+function fd(d){return d.toISOString().slice(0,10)}
+function fw(d){return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
+function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m}
+function m2t(m){return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
+function s2t(s){return m2t((DS*60)+s*(60/SPH))}
+
+// ── TOAST ──
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
+
+// ── LOCK ──
+function requireAuth(tab,navEl){
+  if(unlocked){switchTab(tab,navEl);return}
+  pendTab=tab;pendNav=navEl;
+  document.getElementById('lock-title').textContent={availability:'Availability',analysis:'Analysis'}[tab]||'Protected';
+  document.getElementById('lock-sub').textContent='This section is password protected.';
+  document.getElementById('lock-inp').value='';
+  document.getElementById('lock-err').textContent='';
+  document.getElementById('lock').classList.add('show');
+  setTimeout(()=>document.getElementById('lock-inp').focus(),50);
+}
+function submitLock(){
+  if(document.getElementById('lock-inp').value===PASSWORD){
+    unlocked=true;
+    document.getElementById('lock').classList.remove('show');
+    toast('✓ Unlocked');
+    if(pendTab){switchTab(pendTab,pendNav);pendTab=null;pendNav=null}
+  }else{
+    document.getElementById('lock-err').textContent='Incorrect password.';
+    document.getElementById('lock-inp').value='';
+    document.getElementById('lock-inp').focus();
+  }
+}
+function closeLock(){document.getElementById('lock').classList.remove('show')}
+
+// ── NAV ──
+function switchTab(tab,navEl){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(navEl) navEl.classList.add('active');
+  if(tab==='master') renderMaster();
+  if(tab==='availability') renderAvail();
+  if(tab==='drag'){renderDragGrid();updDGSumm();initDayToggles();updDayPillStyles()}
+  if(tab==='inventory') invInit();
+}
+
+// ── MEMBERS ──
+function addMember(){
+  const name=document.getElementById('new-name').value.trim();
+  if(!name) return;
+  if(members.find(m=>m.name===name)){toast('⚠️ Already exists');return}
+  members.push({name,color:COLORS[members.length%COLORS.length]});
+  schedules[name]={};
+  document.getElementById('new-name').value='';
+  syncAll();toast(`✓ Added ${name}`);
+}
+function removeMember(name){
+  members=members.filter(m=>m.name!==name);
+  delete schedules[name];delete blocked[name];
+  if(curMem===name){curMem=null;document.getElementById('scard').style.display='none'}
+  syncAll();toast(`Removed ${name}`);
+}
+function syncAll(){
+  // sel-member
+  const s1=document.getElementById('sel-member'),v1=s1.value;
+  s1.innerHTML='<option value="">— select —</option>';
+  members.forEach(m=>{const o=document.createElement('option');o.value=m.name;o.textContent=m.name;s1.appendChild(o)});
+  if(members.find(m=>m.name===v1)) s1.value=v1;
+  // drag-member
+  const s2=document.getElementById('drag-member'),v2=s2.value;
+  s2.innerHTML='<option value="">— select —</option>';
+  members.forEach(m=>{const o=document.createElement('option');o.value=m.name;o.textContent=m.name;s2.appendChild(o)});
+  if(members.find(m=>m.name===v2)) s2.value=v2;
+  // chips
+  const ch=document.getElementById('mchips');
+  if(!members.length){ch.innerHTML='<div style="font-size:12px;color:var(--td);padding:4px 0">No members yet.</div>';document.getElementById('sbcount').textContent=0;return}
+  ch.innerHTML=members.map(m=>`<div class="mchip">
+    <div style="width:22px;height:22px;border-radius:50%;background:${m.color.bg};color:${m.color.tx};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${ini(m.name)}</div>
+    <span>${m.name}</span>
+    <span class="mrm" onclick="removeMember('${m.name.replace(/'/g,"\\'")}')">×</span>
+  </div>`).join('');
+  document.getElementById('sbcount').textContent=members.length;
+}
+function ini(n){return n.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase()}
+
+// ── MY SCHEDULE ──
+function initMPick(){
+  const el=document.getElementById('mpick'),now=new Date();
+  for(let m=-1;m<=5;m++){
+    const d=new Date(now.getFullYear(),now.getMonth()+m,1);
+    const o=document.createElement('option');
+    o.value=`${d.getFullYear()}-${d.getMonth()}`;
+    o.textContent=`${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    if(m===0) o.selected=true;
+    el.appendChild(o);
+  }
+}
+function goMonth(){
+  const[y,m]=document.getElementById('mpick').value.split('-').map(Number);
+  curWk=gMon(new Date(y,m,1));renderDayGrid();
+}
+function loadMemberSched(){
+  const name=document.getElementById('sel-member').value;
+  curMem=name||null;selDay=null;
+  document.getElementById('scard').style.display=name?'':'none';
+  document.getElementById('dep').style.display='none';
+  if(name){document.getElementById('wk-lbl').textContent=fw(curWk);renderDayGrid()}
+}
+function renderDayGrid(){
+  document.getElementById('wk-lbl').textContent=fw(curWk);
+  const g=document.getElementById('daygrid');g.innerHTML='';
+  if(!curMem) return;
+  DAYS.forEach((day,i)=>{
+    const dt=addD(curWk,i),key=fd(dt),e=schedules[curMem]?.[key];
+    const cell=document.createElement('div');
+    cell.className='dc'+(selDay===key?' sel':'')+(e?' hase':'');
+    cell.onclick=()=>selDayFn(key,day,dt);
+    let tag='';
+    if(e){const cls=`t${e.status[0]}`;const lbl=e.status==='off'?'Off':e.status==='travel'?'Travel':e.start;tag=`<div class="dctag ${e.status==='working'?'tw':e.status==='remote'?'tr':e.status==='travel'?'tt2':'to'}">${lbl}</div>`}
+    cell.innerHTML=`<div class="dcn">${day}</div><div class="dcnum">${dt.getDate()}</div>${tag}`;
+    g.appendChild(cell);
+  });
+}
+function selDayFn(key,dayName,dt){
+  selDay=key;
+  document.getElementById('edlbl').textContent=`${dayName}, ${MONTHS[dt.getMonth()]} ${dt.getDate()}`;
+  const e=schedules[curMem]?.[key];
+  document.getElementById('dstat').value=e?.status||'working';
+  document.getElementById('dstart').value=e?.start||'09:00';
+  document.getElementById('dend').value=e?.end||'17:00';
+  document.getElementById('dep').style.display='';
+  renderDayGrid();
+}
+function saveDay(){
+  if(!curMem||!selDay) return;
+  schedules[curMem][selDay]={status:document.getElementById('dstat').value,start:document.getElementById('dstart').value,end:document.getElementById('dend').value};
+  renderDayGrid();toast('✓ Saved');
+}
+function clearDay(){
+  if(!curMem||!selDay) return;
+  delete schedules[curMem][selDay];renderDayGrid();toast('Cleared');
+}
+function applyWk(){
+  if(!curMem) return;
+  const s=document.getElementById('dstat').value,st=document.getElementById('dstart').value,en=document.getElementById('dend').value;
+  DAYS.forEach((_,i)=>{schedules[curMem][fd(addD(curWk,i))]={status:s,start:st,end:en}});
+  renderDayGrid();toast('✓ Applied to whole week');
+}
+function prevWk(){curWk=addD(curWk,-7);renderDayGrid()}
+function nextWk(){curWk=addD(curWk,7);renderDayGrid()}
+
+// ── DRAG GRID ──
+let timeMode = 'unavailable'; // 'unavailable' | 'available'
+let selDays = new Set([0,1,2,3,4,5,6]); // which days are toggled for time input
+
+function onDMChange(){dragMem=document.getElementById('drag-member').value||null;renderDragGrid();updDGSumm()}
+
+function setTimeMode(mode){
+  timeMode = mode;
+  document.getElementById('mode-unavail').classList.toggle('tmode-active', mode==='unavailable');
+  document.getElementById('mode-avail').classList.toggle('tmode-active', mode==='available');
+  document.getElementById('mode-hint').innerHTML = mode==='unavailable'
+    ? 'Mark the times you <strong style="color:var(--re)">cannot work</strong> — these will be blocked on your calendar.'
+    : 'Mark the times you <strong style="color:var(--gr)">can work</strong> — everything else on selected days will be blocked.';
+  updDayPillStyles();
+}
+
+function initDayToggles(){
+  const container = document.getElementById('day-toggles');
+  container.innerHTML = DAYS.map((d,i) => `<button class="daypill dpsel" id="dp-${i}" onclick="toggleDay(${i})">${d}</button>`).join('');
+}
+
+function toggleDay(di){
+  if(selDays.has(di)) selDays.delete(di); else selDays.add(di);
+  updDayPillStyles();
+}
+
+function updDayPillStyles(){
+  DAYS.forEach((_,i) => {
+    const el = document.getElementById(`dp-${i}`);
+    if(!el) return;
+    el.className = 'daypill';
+    if(selDays.has(i)) el.classList.add(timeMode==='unavailable'?'dpred':'dpsel');
+  });
+}
+
+function applyTimeRange(){
+  if(!dragMem){toast('⚠️ Select your name first');return}
+  const from = document.getElementById('ti-from').value;
+  const to   = document.getElementById('ti-to').value;
+  if(!from||!to||from>=to){toast('⚠️ Invalid time range');return}
+  const fromSlot = timeToSlot(from), toSlot = timeToSlot(to);
+  if(!blocked[dragMem]) blocked[dragMem]={};
+  selDays.forEach(di => {
+    const dt = addD(dragWk,di), dk = fd(dt);
+    if(!blocked[dragMem][dk]) blocked[dragMem][dk]=new Set();
+    if(timeMode==='unavailable'){
+      // block the range
+      for(let s=fromSlot;s<toSlot;s++) blocked[dragMem][dk].add(s);
+    } else {
+      // "can work" = block everything OUTSIDE this range
+      for(let s=0;s<SLOTS;s++){
+        if(s<fromSlot||s>=toSlot) blocked[dragMem][dk].add(s);
+        else blocked[dragMem][dk].delete(s);
+      }
+    }
+  });
+  renderDragGrid();updDGSumm();
+  toast(`✓ Applied ${from}–${to} to ${selDays.size} day${selDays.size!==1?'s':''}`);
+}
+
+function applyPreset(type){
+  if(!dragMem){toast('⚠️ Select your name first');return}
+  let from='', to='';
+  let targetDays=[...selDays];
+  if(type==='morning')  {from='06:00';to='12:00'}
+  if(type==='afternoon'){from='12:00';to='18:00'}
+  if(type==='evening')  {from='18:00';to='24:00'}
+  if(type==='workday')  {from='09:00';to='17:00'}
+  if(type==='allday')   {from='06:00';to='24:00'}
+  if(type==='weekend')  {targetDays=[5,6];from='06:00';to='24:00'}
+  if(!from) return;
+  if(!blocked[dragMem]) blocked[dragMem]={};
+  const fromSlot=timeToSlot(from), toSlot=timeToSlot(to);
+  targetDays.forEach(di=>{
+    const dt=addD(dragWk,di),dk=fd(dt);
+    if(!blocked[dragMem][dk]) blocked[dragMem][dk]=new Set();
+    if(timeMode==='unavailable'){
+      for(let s=fromSlot;s<toSlot;s++) blocked[dragMem][dk].add(s);
+    } else {
+      for(let s=0;s<SLOTS;s++){
+        if(s<fromSlot||s>=toSlot) blocked[dragMem][dk].add(s);
+        else blocked[dragMem][dk].delete(s);
+      }
+    }
+  });
+  renderDragGrid();updDGSumm();
+  toast(`✓ Applied ${type} preset`);
+}
+
+// Convert "HH:MM" to slot index
+function timeToSlot(timeStr){
+  const[h,m]=timeStr.split(':').map(Number);
+  const totalMins=(h*60+m)-(DS*60);
+  return Math.max(0,Math.min(SLOTS,Math.floor(totalMins/(60/SPH))));
+}
+
+function renderDragGrid(){
+  document.getElementById('dwk-lbl').textContent=fw(dragWk);
+  const g=document.getElementById('draggrid');g.innerHTML='';
+  const c=document.createElement('div');c.className='dgcorner';g.appendChild(c);
+  DAYS.forEach((day,i)=>{
+    const dt=addD(dragWk,i),el=document.createElement('div');
+    el.className='dgdh';el.innerHTML=`${day}<span>${dt.getDate()}</span>`;g.appendChild(el);
+  });
+  for(let s=0;s<SLOTS;s++){
+    const isHT=s%SPH===0;
+    const lbl=document.createElement('div');lbl.className='dgtl';lbl.textContent=isHT?s2t(s):'';g.appendChild(lbl);
+    DAYS.forEach((_,di)=>{
+      const dt=addD(dragWk,di),dk=fd(dt);
+      const cell=document.createElement('div');
+      cell.className='dgc'+(isHT?' ht':'');
+      if(dragMem&&blocked[dragMem]?.[dk]?.has(s)) cell.classList.add('blk');
+      cell.addEventListener('mousedown',e=>{
+        e.preventDefault();
+        if(!dragMem){toast('⚠️ Select your name first');return}
+        dragging=true;
+        dragMode=e.button===2||blocked[dragMem]?.[dk]?.has(s)?'clear':'block';
+        applyDCell(cell,dk,s);
+      });
+      cell.addEventListener('mousemove',()=>{if(dragging&&dragMem) applyDCell(cell,dk,s)});
+      cell.addEventListener('contextmenu',e=>e.preventDefault());
+      g.appendChild(cell);
+    });
+  }
+  document.getElementById('dsavehint').textContent='';
+}
+function applyDCell(cell,dk,slot){
+  if(!dragMem) return;
+  if(!blocked[dragMem]) blocked[dragMem]={};
+  if(!blocked[dragMem][dk]) blocked[dragMem][dk]=new Set();
+  if(dragMode==='block'){blocked[dragMem][dk].add(slot);cell.classList.add('blk')}
+  else{blocked[dragMem][dk].delete(slot);cell.classList.remove('blk')}
+  updDGSumm();
+}
+function stopDrag(){dragging=false}
+function updDGSumm(){
+  const el=document.getElementById('dgsumm');
+  if(!dragMem){el.innerHTML='Select your name above to start.';return}
+  const all=blocked[dragMem]||{};let tot=0;const parts=[];
+  DAYS.forEach((day,i)=>{const dt=addD(dragWk,i),cnt=all[fd(dt)]?.size||0;tot+=cnt;if(cnt>0) parts.push(`<strong>${day}</strong>: ${(cnt/SPH).toFixed(1)}h blocked`)});
+  el.innerHTML=tot===0
+    ? `<strong>${dragMem}</strong> — nothing blocked yet. Use the time range above or drag the grid.`
+    : `<strong>${dragMem}</strong> — ${(tot/SPH).toFixed(1)}h unavailable this week &nbsp;·&nbsp; ${parts.join(' &nbsp;·&nbsp; ')}`;
+}
+function saveDBlocks(){
+  if(!dragMem){toast('⚠️ Select your name first');return}
+  if(!schedules[dragMem]) schedules[dragMem]={};
+  DAYS.forEach((_,di)=>{
+    const dt=addD(dragWk,di),key=fd(dt),db=blocked[dragMem]?.[key]||new Set();
+    if(!db.size) return;
+    const free=[];for(let s=0;s<SLOTS;s++) if(!db.has(s)) free.push(s);
+    if(!free.length){schedules[dragMem][key]={status:'off',start:'09:00',end:'17:00'};return}
+    let best={start:free[0],end:free[0],len:1},cur={start:free[0],end:free[0],len:1};
+    for(let i=1;i<free.length;i++){
+      if(free[i]===free[i-1]+1){cur.end=free[i];cur.len++;if(cur.len>best.len) best={...cur}}
+      else cur={start:free[i],end:free[i],len:1}
+    }
+    schedules[dragMem][key]={status:'working',start:s2t(best.start),end:s2t(best.end+1)};
+  });
+  document.getElementById('dsavehint').textContent='✓ Saved!';
+  toast(`✓ ${dragMem}'s availability saved`);
+  setTimeout(()=>document.getElementById('dsavehint').textContent='',2500);
+}
+function clearDWk(){
+  if(!dragMem) return;
+  if(!blocked[dragMem]) blocked[dragMem]={};
+  DAYS.forEach((_,i)=>{blocked[dragMem][fd(addD(dragWk,i))]=new Set()});
+  renderDragGrid();updDGSumm();toast('Cleared');
+}
+// keep old qFill for compatibility (now routed through applyPreset)
+function qFill(type){applyPreset(type)}
+function prevDWk(){dragWk=addD(dragWk,-7);renderDragGrid();updDGSumm()}
+function nextDWk(){dragWk=addD(dragWk,7);renderDragGrid();updDGSumm()}
+document.addEventListener('mouseup',stopDrag);
+document.addEventListener('mouseleave',stopDrag);
+
+// ── MASTER HEATMAP ENGINE ──
+function memBlocked(mName,dk,slot){
+  if(blocked[mName]?.[dk]?.has(slot)) return true;
+  const e=schedules[mName]?.[dk];
+  if(!e) return false;
+  if(e.status==='off'||e.status==='travel') return true;
+  const ss=(DS*60)+slot*(60/SPH),se=ss+(60/SPH);
+  return ss<t2m(e.start)||se>t2m(e.end);
+}
+function memHasData(mName,dk){return !!(schedules[mName]?.[dk]||(blocked[mName]?.[dk]?.size))}
+function calcScores(wkStart){
+  const res=[];
+  for(let di=0;di<7;di++){
+    const dt=addD(wkStart,di),dk=fd(dt),day=[];
+    for(let s=0;s<SLOTS;s++){
+      let blk=0,tot=0;
+      members.forEach(m=>{if(memHasData(m.name,dk)){tot++;if(memBlocked(m.name,dk,s)) blk++}});
+      day.push({blk,tot,free:tot-blk});
+    }
+    res.push(day);
+  }
+  return res;
+}
+function bestWindows(wkStart,scores,minDur=2){
+  const wins=[];
+  for(let di=0;di<7;di++){
+    const dt=addD(wkStart,di),dk=fd(dt),ds=scores[di];
+    const maxFree=Math.max(...ds.map(s=>s.free));
+    if(maxFree===0) continue;
+    let rs=-1,rl=0;
+    for(let s=0;s<=SLOTS;s++){
+      if(s<SLOTS&&ds[s].free===maxFree){if(rs===-1) rs=s;rl++}
+      else{if(rl>=minDur) wins.push({di,dk,day:DAYS[di],start:rs,end:rs+rl-1,free:maxFree,tot:ds[rs].tot});rs=-1;rl=0}
+    }
+  }
+  return wins.sort((a,b)=>b.free-a.free||(b.end-b.start)-(a.end-a.start)).slice(0,8);
+}
+function renderMaster(){
+  document.getElementById('mwk-lbl').textContent=fw(masterWk);
+  document.getElementById('mc-mem').textContent=members.length;
+  if(!members.length){
+    document.getElementById('mheat').innerHTML='<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--tm);font-size:13px">Add team members to see the heatmap.</div>';
+    document.getElementById('psgrid').innerHTML='';
+    ['mc-best','mc-peak'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('mc-free').textContent='0';document.getElementById('mc-blist').innerHTML='';
+    return;
+  }
+  const scores=calcScores(masterWk),bwins=bestWindows(masterWk,scores,2);
+  const bestSet=new Set();
+  if(bwins.length){const top=bwins[0].free;bwins.filter(w=>w.free===top).forEach(w=>{for(let s=w.start;s<=w.end;s++) bestSet.add(`${w.di}:${s}`)})}
+  let allFree=0,peakDi=0,peakScore=-1;
+  scores.forEach((day,di)=>{
+    const df=day.reduce((s,x)=>s+x.free,0);if(df>peakScore){peakScore=df;peakDi=di}
+    day.forEach(s=>{if(s.tot>0&&s.blk===0&&s.free>0) allFree++});
+  });
+  document.getElementById('mc-peak').textContent=DAYS[peakDi];
+  document.getElementById('mc-free').textContent=allFree;
+  document.getElementById('mc-best').textContent=bwins.length?`${bwins[0].day} ${s2t(bwins[0].start)}`:'—';
+  // build heatmap
+  const hg=document.getElementById('mheat');hg.innerHTML='';
+  const co=document.createElement('div');co.className='dgcorner';hg.appendChild(co);
+  DAYS.forEach((day,di)=>{
+    const dt=addD(masterWk,di),el=document.createElement('div');
+    el.className='dgdh';el.innerHTML=`${day}<span>${dt.getDate()}</span>`;hg.appendChild(el);
+  });
+  const tt=document.getElementById('mctt');
+  for(let s=0;s<SLOTS;s++){
+    const isHT=s%SPH===0;
+    const lbl=document.createElement('div');lbl.className='dgtl';lbl.textContent=isHT?s2t(s):'';hg.appendChild(lbl);
+    DAYS.forEach((_,di)=>{
+      const cell=document.createElement('div');
+      cell.className='dgc mc'+(isHT?' ht':'');
+      const sd=scores[di][s],isBest=bestSet.has(`${di}:${s}`);
+      if(isBest) cell.classList.add('best');
+      else if(sd.tot===0) cell.style.background='var(--s2)';
+      else{
+        const r=sd.blk/sd.tot;
+        if(r===0) cell.style.background='var(--s3)';
+        else if(r<=.33) cell.style.background=`rgba(245,166,35,${.15+r*.5})`;
+        else if(r<=.66) cell.style.background=`rgba(245,96,96,${.2+r*.35})`;
+        else cell.style.background=`rgba(245,96,96,${.45+r*.45})`;
+      }
+      cell.addEventListener('mouseenter',e=>{
+        if(sd.tot===0){tt.style.display='none';return}
+        const dt2=addD(masterWk,di),dk=fd(dt2);
+        const free=members.filter(m=>memHasData(m.name,dk)&&!memBlocked(m.name,dk,s)).map(m=>m.name);
+        const busy=members.filter(m=>memHasData(m.name,dk)&&memBlocked(m.name,dk,s)).map(m=>m.name);
+        let html=`<div style="font-weight:600;margin-bottom:4px;color:var(--t)">${DAYS[di]} ${s2t(s)}–${s2t(s+1)}</div>`;
+        if(free.length) html+=`<div style="color:var(--gr)">✓ Free: ${free.join(', ')}</div>`;
+        if(busy.length) html+=`<div style="color:var(--re)">✗ Busy: ${busy.join(', ')}</div>`;
+        if(isBest) html+=`<div style="color:var(--gr);margin-top:3px;font-weight:600">★ Best window</div>`;
+        tt.innerHTML=html;tt.style.display='block';postt(e);
+      });
+      cell.addEventListener('mousemove',postt);
+      cell.addEventListener('mouseleave',()=>tt.style.display='none');
+      hg.appendChild(cell);
+    });
+  }
+  // best pills
+  const bl=document.getElementById('mc-blist');
+  bl.innerHTML=bwins.length?bwins.slice(0,6).map(w=>{
+    const pct=w.tot?Math.round(w.free/w.tot*100):0,dur=((w.end-w.start+1)/SPH).toFixed(1);
+    const dt2=addD(masterWk,w.di);
+    return `<div class="bpill">${w.day} ${MONTHS[dt2.getMonth()]} ${dt2.getDate()} ${s2t(w.start)}–${s2t(w.end+1)} <span class="bpc">${w.free} free · ${pct}% · ${dur}h</span></div>`;
+  }).join(''):'<span style="font-size:12px;color:var(--td)">No data yet.</span>';
+  renderPSGrid();
+}
+function postt(e){
+  const tt=document.getElementById('mctt');
+  let x=e.clientX+14,y=e.clientY+14;
+  if(x+230>window.innerWidth) x=e.clientX-230;
+  if(y+120>window.innerHeight) y=e.clientY-120;
+  tt.style.left=x+'px';tt.style.top=y+'px';
+}
+function renderPSGrid(){
+  const con=document.getElementById('psgrid');con.innerHTML='';
+  if(!members.length){con.innerHTML='<div style="padding:24px;text-align:center;color:var(--tm);font-size:13px">No members.</div>';return}
+  const hdr=document.createElement('div');hdr.className='pshdr';
+  const hc=document.createElement('div');hc.className='pshc';hdr.appendChild(hc);
+  DAYS.forEach((d,di)=>{const dt=addD(masterWk,di),el=document.createElement('div');el.className='pshday';el.innerHTML=`${d}<span>${dt.getDate()}</span>`;hdr.appendChild(el)});
+  con.appendChild(hdr);
+  for(let s=0;s<SLOTS;s++){
+    const isHT=s%SPH===0;
+    if(isHT){
+      const div=document.createElement('div');div.className='psdiv';
+      const dl=document.createElement('div');dl.className='psdivl';dl.textContent=s2t(s);div.appendChild(dl);
+      for(let d=0;d<7;d++){const dc=document.createElement('div');dc.className='psdivc';const ln=document.createElement('div');ln.className='psdivline';dc.appendChild(ln);div.appendChild(dc)}
+      con.appendChild(div);
+    }
+    members.forEach(m=>{
+      const row=document.createElement('div');row.className='psrow';
+      const lbl=document.createElement('div');lbl.className='pslbl';
+      const lt=document.createElement('div');lt.className='pslblt';lt.title=m.name;
+      if(isHT){lt.textContent=m.name.split(' ')[0];lt.style.color=m.color.tx}
+      lbl.appendChild(lt);row.appendChild(lbl);
+      DAYS.forEach((_,di)=>{
+        const dt=addD(masterWk,di),dk=fd(dt);
+        const sl=document.createElement('div');sl.className='pssl';
+        if(isHT) sl.style.borderTop='1px solid rgba(255,255,255,.04)';
+        if(memHasData(m.name,dk)) sl.style.background=memBlocked(m.name,dk,s)?m.color.bg.replace(/[\d.]+\)$/,'0.3)'):m.color.bg;
+        else sl.style.background='rgba(255,255,255,.015)';
+        row.appendChild(sl);
+      });
+      con.appendChild(row);
+    });
+  }
+}
+function prevMWk(){masterWk=addD(masterWk,-7);renderMaster()}
+function nextMWk(){masterWk=addD(masterWk,7);renderMaster()}
+
+// ── AVAILABILITY ──
+function freeSlots(wkStart,minP){
+  const res=[];
+  DAYS.forEach((_,i)=>{
+    const dt=addD(wkStart,i),key=fd(dt),av=[];
+    members.forEach(m=>{const e=schedules[m.name]?.[key];if(e&&(e.status==='working'||e.status==='remote')) av.push({name:m.name,start:t2m(e.start),end:t2m(e.end)})});
+    if(av.length<minP) return;
+    const times=new Set();av.forEach(a=>{times.add(a.start);times.add(a.end)});
+    [...times].sort((a,b)=>a-b).forEach((ts,ti,arr)=>{
+      if(ti===arr.length-1) return;
+      const te=arr[ti+1],mid=(ts+te)/2,present=av.filter(a=>a.start<=mid&&a.end>=mid);
+      if(present.length>=minP) res.push({di:i,day:DAYS[i],dn:dt.getDate(),mon:MONTHS[dt.getMonth()],start:ts,end:te,members:present.map(p=>p.name),count:present.length});
+    });
+  });
+  return res;
+}
+function mergeSlots(slots){
+  if(!slots.length) return[];
+  slots.sort((a,b)=>a.start-b.start||b.count-a.count);
+  const merged=[];let cur={...slots[0]};
+  for(let i=1;i<slots.length;i++){const s=slots[i];if(s.start<=cur.end&&s.members.join(',')===cur.members.join(',')) cur.end=Math.max(cur.end,s.end);else{merged.push(cur);cur={...s}}}
+  merged.push(cur);return merged;
+}
+function renderAvail(){
+  document.getElementById('awk-lbl').textContent=fw(avWk);
+  document.getElementById('av-mem').textContent=members.length;
+  const minP=parseInt(document.getElementById('minp').value);
+  const slots=freeSlots(avWk,minP);
+  document.getElementById('av-slots').textContent=slots.length;
+  document.getElementById('av-max').textContent=slots.length?Math.max(...slots.map(s=>s.count)):0;
+  const list=document.getElementById('avlist');
+  if(!members.length){list.innerHTML='<div class="empty"><div class="empty-icon">👥</div>Add members and schedules first.</div>';return}
+  if(!slots.length){list.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div>No slots with ${minP}+ people available.</div>`;return}
+  const grp={};slots.forEach(s=>{const k=`${s.day}|${s.mon}|${s.dn}`;if(!grp[k]) grp[k]=[];grp[k].push(s)});
+  list.innerHTML=Object.entries(grp).map(([dk,ds])=>{
+    const[day,mon,dn]=dk.split('|');
+    return `<div class="avdh">${day}, ${mon} ${dn}</div>`+mergeSlots(ds).map(slot=>{
+      const pct=members.length?Math.round(slot.count/members.length*100):0;
+      return `<div class="avslot"><div><div class="avtime">${m2t(slot.start)} – ${m2t(slot.end)}</div><div class="avnames">${slot.members.join(' · ')}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="cpill">${slot.count} people</span><span style="font-size:11px;color:var(--td);font-family:'DM Mono',monospace">${pct}%</span></div></div>`;
+    }).join('');
+  }).join('');
+}
+function prevAWk(){avWk=addD(avWk,-7);renderAvail()}
+function nextAWk(){avWk=addD(avWk,7);renderAvail()}
+
+// ── AI ANALYSIS ──
+let anthropicKey = '';
+
+function openAPIKeyModal(pendingCb){
+  _pendingAICb = pendingCb || null;
+  document.getElementById('apikey-inp').value = anthropicKey || '';
+  document.getElementById('apikey-err').textContent = '';
+  document.getElementById('apikey-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('apikey-inp').focus(), 50);
+}
+function closeAPIKeyModal(){ document.getElementById('apikey-modal').classList.remove('show'); _pendingAICb=null; }
+function toggleKeyVis(){ document.getElementById('apikey-inp').type = document.getElementById('apikey-show').checked ? 'text' : 'password'; }
+function saveAPIKey(){
+  const val = document.getElementById('apikey-inp').value.trim();
+  if(!val){ document.getElementById('apikey-err').textContent='Please enter a key.'; return; }
+  if(!val.startsWith('sk-')){ document.getElementById('apikey-err').textContent='Key should start with sk-…'; return; }
+  anthropicKey = val;
+  document.getElementById('apikey-modal').classList.remove('show');
+  updateKeyBanners();
+  toast('✓ API key saved');
+  if(_pendingAICb){ _pendingAICb(); _pendingAICb=null; }
+}
+let _pendingAICb = null;
+function updateKeyBanners(){
+  const hasKey = !!anthropicKey;
+  document.getElementById('apikey-banner').style.display = hasKey ? 'none' : '';
+  document.getElementById('apikey-set-banner').style.display = hasKey ? '' : 'none';
+}
+
+async function callAnthropic(prompt, maxTokens=1200){
+  if(!anthropicKey) throw new Error('NO_KEY');
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens: maxTokens, messages:[{role:'user',content:prompt}] })
+  });
+  if(!r.ok){
+    const err = await r.json().catch(()=>({}));
+    throw new Error(err?.error?.message || `HTTP ${r.status}`);
+  }
+  const d = await r.json();
+  return d.content?.[0]?.text || '';
+}
+
+async function runAI(q){
+  if(!q?.trim()) return;
+  if(!anthropicKey){ openAPIKeyModal(()=>runAI(q)); return; }
+  document.getElementById('aiq').value='';
+  const box=document.getElementById('aiout');
+  box.textContent='Running availability algorithm…';box.classList.add('pulse');
+  const prompt=`You are an expert scheduling assistant. Pre-computed availability data:\n\n${buildCtx()}\n\nUser: ${q}\n\nRespond clearly with bullet points where useful. Reference specific times, days, and names.`;
+  try{
+    const text = await callAnthropic(prompt, 1200);
+    box.classList.remove('pulse');
+    box.textContent = text || 'No response.';
+  }catch(e){
+    box.classList.remove('pulse');
+    if(e.message==='NO_KEY'){ box.textContent='Add your API key to use AI features.'; openAPIKeyModal(()=>runAI(q)); }
+    else if(e.message.includes('401')||e.message.includes('invalid')||e.message.includes('auth')){ box.textContent='Invalid API key. Click "Change key" above to update it.'; anthropicKey=''; updateKeyBanners(); }
+    else box.textContent=`Error: ${e.message}`;
+  }
+}
+function buildCtx(){
+  let ctx=`Team (${members.length}): ${members.map(m=>m.name).join(', ')||'none'}\nWeek: ${fw(avWk)}\n\n`;
+  members.forEach(m=>{
+    ctx+=`${m.name}:\n`;let any=false;
+    for(let di=0;di<7;di++){
+      const dt=addD(avWk,di),key=fd(dt),e=schedules[m.name]?.[key],db=blocked[m.name]?.[key];
+      if(e||(db&&db.size)){any=true;let ln=`  ${DAYS[di]} ${MONTHS[dt.getMonth()]} ${dt.getDate()}: `;
+        if(e) ln+=`${e.status}${e.status!=='off'?` ${e.start}–${e.end}`:''}`;
+        if(db&&db.size) ln+=` [${(db.size/SPH).toFixed(1)}h drag-blocked]`;
+        ctx+=ln+'\n'}
+    }
+    if(!any) ctx+='  No schedule data\n';
+  });
+  const scores=calcScores(avWk),bw=bestWindows(avWk,scores,2);
+  ctx+='\n── ALGORITHM OUTPUT ──\n';
+  for(let di=0;di<7;di++){
+    const dt=addD(avWk,di),ds=scores[di],maxFree=Math.max(...ds.map(s=>s.free));
+    if(maxFree===0) continue;
+    const wins=[];let rs=-1,rl=0;
+    ds.forEach((s,si)=>{
+      if(s.free===maxFree){if(rs===-1) rs=si;rl++}
+      else{if(rl>0) wins.push(`${s2t(rs)}–${s2t(rs+rl)} (${maxFree}/${ds[rs].tot} free)`);rs=-1;rl=0}
+    });
+    if(rl>0) wins.push(`${s2t(rs)}–${s2t(rs+rl)} (${maxFree}/${ds[rs].tot} free)`);
+    ctx+=`  ${DAYS[di]} ${MONTHS[dt.getMonth()]} ${dt.getDate()}: ${wins.slice(0,3).join(', ')}\n`;
+  }
+  ctx+='\nTop ranked windows:\n';
+  bw.slice(0,6).forEach((w,i)=>{
+    const pct=w.tot?Math.round(w.free/w.tot*100):0,dt2=addD(avWk,w.di);
+    const freeNames=members.filter(m=>memHasData(m.name,w.dk)&&!memBlocked(m.name,w.dk,w.start)).map(m=>m.name);
+    ctx+=`  ${i+1}. ${w.day} ${MONTHS[dt2.getMonth()]} ${dt2.getDate()} ${s2t(w.start)}–${s2t(w.end+1)} — ${w.free} free (${pct}%)\n     Who: ${freeNames.join(', ')}\n`;
+  });
+  return ctx;
+}
+
+// ── INVENTORY ──
+const INV=[
+  {name:'Flowmeter',qty:1,box:'Pump Box'},{name:'Assorted Springs',qty:null,box:'Pump Box'},
+  {name:'Pressure Gauges (BIG)',qty:2,box:'Pump Box'},{name:'Pressure Gauges (SMALL)',qty:2,box:'Pump Box'},
+  {name:'1mm Adjustable Spray Nozzles',qty:null,box:'Pump Box'},{name:'Clear Lid w/ O-ring',qty:1,box:'Pump Box'},
+  {name:'Plastic Hosing Clamps',qty:null,box:'Pump Box'},{name:'Fuel/Air Attachment',qty:2,box:'Pump Box'},
+  {name:'Tube Cutter',qty:1,box:'Pump Box'},{name:'Screwdriver (Phillips 3)',qty:1,box:'Adhesive & Tools'},
+  {name:'Black Adhesive Vinyl Roll',qty:2,box:'Pump Box'},{name:'Pump Cover',qty:2,box:'Pump Box'},
+  {name:'L-Bracket',qty:1,box:'Pump Box'},{name:'Unknown Screw Bag',qty:null,box:'Fasteners'},
+  {name:'Wireless CO2 Sensor',qty:3,box:'Pump Box'},{name:'Duct Tape / Gorilla Tape',qty:9,box:'Adhesive & Tools'},
+  {name:'Electrical Tape',qty:1,box:'Adhesive & Tools'},{name:'DC Tips & Polarity Converter',qty:1,box:'Cable Box'},
+  {name:'Foam Paint Brushes',qty:2,box:'Adhesive & Tools'},{name:'Digital Pressure Gauge',qty:1,box:'Pump Box'},
+  {name:'Flex Glue Tube',qty:2,box:'Adhesive & Tools'},{name:'Metal Pipe Brackets',qty:null,box:'Pump Box'},
+  {name:'Flexible Plastic Tubing (LONG)',qty:1,box:'Pump Box'},{name:'Flexible Plastic Tubing (SHORT)',qty:3,box:'Pump Box'},
+  {name:'Vinyl Caulk',qty:1,box:'Adhesive & Tools'},{name:'Coarse Bristle Brush',qty:1,box:'Adhesive & Tools'},
+  {name:'Holes Fasteners (small white box)',qty:1,box:'Fasteners'},{name:'Screwdriver Flat Head',qty:1,box:'Pump Box'},
+  {name:'Outdoor Power Supply',qty:null,box:'Pump Box'},{name:'EUROPLAST Air Distribution',qty:2,box:'Pump Box'},
+  {name:'Motor Oil',qty:1,box:'Beaker Box'},{name:'Silver Washers',qty:5,box:'Pump Box'},
+  {name:'Inverter Generator',qty:1,box:'Box X'},{name:'Vent Systems Degree Duct Coupler',qty:1,box:'Box X'},
+  {name:'Wrenches',qty:2,box:'Pump Box'},{name:'Potassium Hydroxide Kolt Flakes',qty:3,box:'Beaker Box'},
+  {name:'Disposable Syringe',qty:1,box:'Adhesive & Tools'},{name:'Wire Clippers',qty:4,box:'Adhesive & Tools'},
+  {name:'White PTFE Threadseal Tape',qty:1,box:'Adhesive & Tools'},{name:'Plug and Connectors',qty:2,box:'Pump Box'},
+  {name:'Infinity Fan Controller',qty:null,box:'Box X'},{name:'R-clip (Hitch) Pin Clip',qty:5,box:'Fasteners'},
+  {name:'Mr. Clean Surface Cleaner',qty:1,box:'Adhesive & Tools'},{name:'Black Lid',qty:1,box:'Wires'},
+  {name:'Fertilizer Injector',qty:1,box:'Fasteners'},{name:'Purple Air Sensors',qty:4,box:'Air Sensors'},
+  {name:'White Plastic Stand Holder',qty:1,box:'Box X'},{name:'Duct Clamps',qty:3,box:'Adhesive & Tools'},
+  {name:'Belt with 2 Hooks',qty:1,box:'Fasteners'},{name:'Block Seals Threads and Gaskets',qty:1,box:'Fasteners'},
+  {name:'3M KCL Storage Solution',qty:1,box:'Adhesive & Tools'},{name:'Calibration Buffer Solution',qty:1,box:'Beaker Box'},
+  {name:'Silicon Bracelet',qty:1,box:'Adhesive & Tools'},{name:'Black Plastic Wire (Mistcooling.com)',qty:1,box:'Wires'},
+  {name:'1.5 inch Screw Multimaterial #2 Phillips/Square',qty:130,box:'Fasteners'},
+  {name:'USB-B Black Cable with Power Supply',qty:1,box:'Cable Box'},{name:'USB-B White Cable',qty:1,box:'Cable Box'},
+  {name:'4 pH Calibration Buffer Solution',qty:1,box:'Beaker Box'},{name:'High Grade Potassium Hydroxide',qty:6,box:'Box B'},
+  {name:'Digital Projection Scale',qty:1,box:'Box A'},{name:'Digital Kitchen Scale',qty:1,box:'Box A'},
+  {name:'9V Batteries',qty:4,box:'Electronics'},{name:'Teflon Thread Tape',qty:1,box:'Adhesive & Tools'},
+  {name:'PCB with LED Display',qty:2,box:'Electronics'},{name:'Resistors Pack',qty:1,box:'Electronics'},
+  {name:'Transistors Pack',qty:1,box:'Electronics'},{name:'500 mL Erlenmeyer Flask',qty:2,box:'Beaker Box'},
+  {name:'1000 mL Cylindrical Flask',qty:2,box:'Beaker Box'},{name:'Circular Saw',qty:1,box:'Adhesive & Tools'},
+  {name:'Black Circular Lid',qty:1,box:'Wires'},{name:'Black Circular Lid with Wires',qty:3,box:'Wires'},
+  {name:'Black Cord with 144W Universal Power Adapter',qty:1,box:'Cable Box'},
+  {name:'Clear Plastic Tube Wire',qty:1,box:'Wires'},{name:'Hollow Threaded Metal Pipe',qty:1,box:'Adhesive & Tools'},
+  {name:'Wrench',qty:1,box:'Adhesive & Tools'},{name:'Zipties Pack',qty:1,box:'Adhesive & Tools'},
+  {name:'Black Duct',qty:4,box:'Adhesive & Tools'},{name:'Fan Accessories',qty:6,box:'Cable Box'},
+  {name:'M3 Screws Pack',qty:1,box:'Fasteners'},{name:'Brass Adapters',qty:2,box:'Fasteners'},
+  {name:'Mist Nozzles Pack',qty:1,box:'Fasteners'},{name:'Plastic Clevis Pins Pack',qty:1,box:'Fasteners'},
+  {name:'Pipe Holders Pack',qty:1,box:'Fasteners'},{name:'Screw Driver P2 x6',qty:1,box:'Adhesive & Tools'},
+  {name:'Staples Tape',qty:1,box:'Adhesive & Tools'},{name:'White Gloves',qty:1,box:'Adhesive & Tools'},
+  {name:'Huskey Band with One Hook',qty:1,box:'Adhesive & Tools'},{name:'Zen Accessory Kit',qty:2,box:'Adhesive & Tools'},
+  {name:'Purple Air Plastic Safetys',qty:1,box:'Wires'},{name:'Black Strap with Hook and Fasten',qty:1,box:'Adhesive & Tools'},
+  {name:'Glob Tek Power Supply Wire',qty:1,box:'Adhesive & Tools'},{name:'Rubber Wires',qty:1,box:'Wires'},
+  {name:'Plastic Silicon Tubes',qty:4,box:'Wires'},{name:'White Cable Charger',qty:1,box:'Wires'},
+  {name:'Ball Couplers',qty:2,box:'Adhesive & Tools'},{name:'Zipties Small Pack',qty:2,box:'Fasteners'},
+  {name:'Pump',qty:1,box:'Pump Box'},{name:'Nylon Pipe',qty:1,box:'Adhesive & Tools'},
+  {name:'Mistcooling Platform',qty:1,box:'Pump Box'},{name:'Metal Wrench Circle',qty:1,box:'Adhesive & Tools'},
+  {name:'Hydrobreeze Pine Cutter',qty:1,box:'Adhesive & Tools'},{name:'Large/Small Duct Openers',qty:2,box:'Pump Box'},
+  {name:'Cutter Pit',qty:1,box:'Adhesive & Tools'},
+];
+const BCLR={
+  'Pump Box':{bg:'rgba(91,110,245,.15)',tx:'#7b8fff'},'Adhesive & Tools':{bg:'rgba(245,166,35,.15)',tx:'#f5a623'},
+  'Cable Box':{bg:'rgba(56,189,248,.15)',tx:'#38bdf8'},'Beaker Box':{bg:'rgba(62,207,142,.15)',tx:'#3ecf8e'},
+  'Fasteners':{bg:'rgba(167,139,250,.15)',tx:'#a78bfa'},'Wires':{bg:'rgba(245,96,96,.15)',tx:'#f56060'},
+  'Box X':{bg:'rgba(255,255,255,.07)',tx:'#a0aac8'},'Box A':{bg:'rgba(255,220,130,.15)',tx:'#e8b84b'},
+  'Box B':{bg:'rgba(180,220,90,.15)',tx:'#96c840'},'Electronics':{bg:'rgba(250,100,180,.15)',tx:'#f564b4'},
+  'Air Sensors':{bg:'rgba(100,230,230,.15)',tx:'#40d4d4'},
+};
+let invFilt=[...INV],invBox='All',invSortK='name',invSortD=1,invQ='';
+function invInit(){
+  const boxes=[...new Set(INV.map(i=>i.box))];
+  const qty=INV.reduce((s,i)=>s+(i.qty||0),0);
+  document.getElementById('invstats').innerHTML=`<div class="invstat"><strong>${INV.length}</strong>unique items</div><div class="invstat"><strong>${qty}+</strong>total units</div><div class="invstat"><strong>${boxes.length}</strong>storage boxes</div>`;
+  invRenderFilters();invApply();
+}
+function invRenderFilters(){
+  const all=['All',...[...new Set(INV.map(i=>i.box))].sort()];
+  document.getElementById('invfilters').innerHTML=all.map(b=>{
+    const c=BCLR[b]||{};const isA=invBox===b;
+    const st=isA&&b!=='All'?`background:${c.bg};border-color:${c.tx};color:${c.tx};`:'';
+    return `<button class="boxbtn${isA?' active':''}" style="${st}" onclick="invSetBox('${b.replace(/'/g,"\\'")}')"> ${b}</button>`;
+  }).join('');
+}
+function invSetBox(b){invBox=b;invRenderFilters();invApply()}
+function invSearch(q){invQ=q.trim().toLowerCase();document.getElementById('invaiarea').style.display='none';invApply()}
+function invApply(){
+  let data=[...INV];
+  if(invBox!=='All') data=data.filter(i=>i.box===invBox);
+  if(invQ) data=data.filter(i=>i.name.toLowerCase().includes(invQ)||i.box.toLowerCase().includes(invQ));
+  data.sort((a,b)=>{
+    const av=invSortK==='qty'?(a.qty||0):invSortK==='box'?a.box:a.name;
+    const bv=invSortK==='qty'?(b.qty||0):invSortK==='box'?b.box:b.name;
+    return(typeof av==='string'?av.localeCompare(bv):(av-bv))*invSortD;
+  });
+  invFilt=data;
+  document.getElementById('invcnt').textContent=(invQ||invBox!=='All')?`${data.length} result${data.length!==1?'s':''}` :'';
+  invRenderTable(data,invQ);
+}
+function invSort(k){
+  if(invSortK===k) invSortD*=-1;else{invSortK=k;invSortD=1}
+  ['name','qty','box'].forEach(x=>{const el=document.getElementById(`si-${x}`);if(el) el.textContent=x===k?(invSortD===1?'↑':'↓'):'↕'});
+  invApply();
+}
+function invRenderTable(data,hl){
+  const tb=document.getElementById('invtbody');
+  if(!data.length){tb.innerHTML=`<tr><td colspan="3"><div class="empty">No exact matches.<br>Try <strong>AI Search</strong> for fuzzy matching.</div></td></tr>`;return}
+  const h=(hl||'').toLowerCase();
+  tb.innerHTML=data.map(item=>{
+    const c=BCLR[item.box]||{bg:'rgba(255,255,255,.06)',tx:'#888'};
+    const nm=h&&item.name.toLowerCase().includes(h)?item.name.replace(new RegExp(`(${eRe(h)})`, 'gi'),'<mark class="ihl">$1</mark>'):eH(item.name);
+    const bx=h&&item.box.toLowerCase().includes(h)?item.box.replace(new RegExp(`(${eRe(h)})`, 'gi'),'<mark class="ihl">$1</mark>'):eH(item.box);
+    const qty=item.qty!=null?`<span class="qbadge hq">${item.qty}</span>`:`<span class="qbadge">—</span>`;
+    return `<tr><td class="iname">${nm}</td><td>${qty}</td><td><span class="bbox" style="background:${c.bg};color:${c.tx}">${bx}</span></td></tr>`;
+  }).join('');
+}
+function eRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+function eH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function invReset(){
+  document.getElementById('invsearch').value='';
+  invQ='';invBox='All';
+  document.getElementById('invaiarea').style.display='none';
+  document.getElementById('invcnt').textContent='';
+  invRenderFilters();invApply();
+}
+async function invAISearch(q){
+  if(!q?.trim()) return;
+  if(!anthropicKey){ openAPIKeyModal(()=>invAISearch(q)); return; }
+  const area=document.getElementById('invaiarea'),out=document.getElementById('invaiout');
+  area.style.display='block';out.textContent='Searching with AI…';out.classList.add('pulse');
+  const list=INV.map((item,i)=>`${i+1}. ${item.name} | Qty: ${item.qty??'?'} | Box: ${item.box}`).join('\n');
+  const prompt=`You are an inventory assistant for CarbonCLAIR lab. Full inventory:\n\n${list}\n\nUser searched: "${q}"\n\n1. Find closest matches using fuzzy/semantic matching.\n2. List up to 5, ranked by relevance.\n3. Format each: ✓ [Item Name] — Qty: X — Location: [Box]\n4. Add brief reasoning if helpful.\n5. If nothing close, say so and suggest alternatives.\nBe concise.`;
+  try{
+    const text = await callAnthropic(prompt, 600);
+    out.classList.remove('pulse');
+    out.textContent = text || 'No results.';
+    const matches=[...text.matchAll(/✓\s(.+?)\s—/g)].map(m=>m[1].trim().toLowerCase());
+    if(matches.length){
+      invQ='';invBox='All';invRenderFilters();invRenderTable(INV,'');
+      setTimeout(()=>{
+        let scrolled=false;
+        document.querySelectorAll('#invtbody tr').forEach(row=>{
+          const cell=row.querySelector('.iname');if(!cell) return;
+          const ct=cell.textContent.toLowerCase();
+          if(matches.some(ml=>ml.split(' ').filter(w=>w.length>3).some(w=>ct.includes(w)))){
+            row.classList.add('ihl');
+            if(!scrolled){row.scrollIntoView({behavior:'smooth',block:'center'});scrolled=true}
+          }
+        });
+      },80);
+    }
+  }catch(e){
+    out.classList.remove('pulse');
+    if(e.message==='NO_KEY'){ out.textContent='Add your API key to use AI search.'; openAPIKeyModal(()=>invAISearch(q)); }
+    else if(e.message.includes('401')||e.message.includes('invalid')||e.message.includes('auth')){ out.textContent='Invalid API key. Go to the Analysis tab and click "Change key".'; anthropicKey=''; updateKeyBanners(); }
+    else out.textContent=`Error: ${e.message}`;
+  }
+}
+function invExport(){
+  const rows=[['Item','Quantity','Box'],...invFilt.map(i=>[i.name,i.qty??'',i.box])];
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='carbonclair_inventory.csv';a.click();
+}
+
+// ── INIT ──
+initMPick();
+initDayToggles();
+syncAll();
+// Demo members
+const TODAY=gMon(new Date());
+[
+  {name:'Alex Chen',    sched:[[0,'working','09:00','18:00'],[1,'working','09:00','18:00'],[2,'working','09:00','13:00'],[3,'working','09:00','18:00'],[4,'working','09:00','17:00']]},
+  {name:'Jordan Lee',   sched:[[0,'working','10:00','19:00'],[2,'working','10:00','19:00'],[3,'working','10:00','19:00'],[4,'remote','10:00','16:00'],[5,'working','10:00','14:00']]},
+  {name:'Sam Rivera',   sched:[[0,'remote','08:00','16:00'],[1,'working','08:00','16:00'],[2,'working','08:00','16:00'],[4,'working','08:00','16:00']]},
+].forEach(dm=>{
+  members.push({name:dm.name,color:COLORS[members.length%COLORS.length]});
+  schedules[dm.name]={};
+  dm.sched.forEach(([di,status,start,end])=>{schedules[dm.name][fd(addD(TODAY,di))]={status,start,end}});
+});
+syncAll();
+</script>
+</body>
+</html>
