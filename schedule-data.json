@@ -48,6 +48,13 @@
         "bg": "rgba(91,110,245,0.2)",
         "tx": "#7b8fff"
       }
+    },
+    {
+      "name": "aaaa",
+      "color": {
+        "bg": "rgba(62,207,142,0.15)",
+        "tx": "#3ecf8e"
+      }
     }
   ],
   "schedules": {
@@ -130,7 +137,8 @@
     "potato": {},
     "tomato": {},
     "cabbage": {},
-    "hehe": {}
+    "hehe": {},
+    "aaaa": {}
   },
   "blocked": {}
 }
