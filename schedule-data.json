@@ -1,0 +1,136 @@
+{
+  "members": [
+    {
+      "name": "Alex Chen",
+      "color": {
+        "bg": "rgba(91,110,245,0.2)",
+        "tx": "#7b8fff"
+      }
+    },
+    {
+      "name": "Jordan Lee",
+      "color": {
+        "bg": "rgba(62,207,142,0.15)",
+        "tx": "#3ecf8e"
+      }
+    },
+    {
+      "name": "Sam Rivera",
+      "color": {
+        "bg": "rgba(245,166,35,0.15)",
+        "tx": "#f5a623"
+      }
+    },
+    {
+      "name": "potato",
+      "color": {
+        "bg": "rgba(167,139,250,0.15)",
+        "tx": "#a78bfa"
+      }
+    },
+    {
+      "name": "tomato",
+      "color": {
+        "bg": "rgba(245,96,96,0.15)",
+        "tx": "#f56060"
+      }
+    },
+    {
+      "name": "cabbage",
+      "color": {
+        "bg": "rgba(56,189,248,0.15)",
+        "tx": "#38bdf8"
+      }
+    },
+    {
+      "name": "hehe",
+      "color": {
+        "bg": "rgba(91,110,245,0.2)",
+        "tx": "#7b8fff"
+      }
+    }
+  ],
+  "schedules": {
+    "Alex Chen": {
+      "2026-03-16": {
+        "status": "working",
+        "start": "09:00",
+        "end": "18:00"
+      },
+      "2026-03-17": {
+        "status": "working",
+        "start": "09:00",
+        "end": "18:00"
+      },
+      "2026-03-18": {
+        "status": "working",
+        "start": "09:00",
+        "end": "13:00"
+      },
+      "2026-03-19": {
+        "status": "working",
+        "start": "09:00",
+        "end": "18:00"
+      },
+      "2026-03-20": {
+        "status": "working",
+        "start": "09:00",
+        "end": "17:00"
+      }
+    },
+    "Jordan Lee": {
+      "2026-03-16": {
+        "status": "working",
+        "start": "10:00",
+        "end": "19:00"
+      },
+      "2026-03-18": {
+        "status": "working",
+        "start": "10:00",
+        "end": "19:00"
+      },
+      "2026-03-19": {
+        "status": "working",
+        "start": "10:00",
+        "end": "19:00"
+      },
+      "2026-03-20": {
+        "status": "remote",
+        "start": "10:00",
+        "end": "16:00"
+      },
+      "2026-03-21": {
+        "status": "working",
+        "start": "10:00",
+        "end": "14:00"
+      }
+    },
+    "Sam Rivera": {
+      "2026-03-16": {
+        "status": "remote",
+        "start": "08:00",
+        "end": "16:00"
+      },
+      "2026-03-17": {
+        "status": "working",
+        "start": "08:00",
+        "end": "16:00"
+      },
+      "2026-03-18": {
+        "status": "working",
+        "start": "08:00",
+        "end": "16:00"
+      },
+      "2026-03-20": {
+        "status": "working",
+        "start": "08:00",
+        "end": "16:00"
+      }
+    },
+    "potato": {},
+    "tomato": {},
+    "cabbage": {},
+    "hehe": {}
+  },
+  "blocked": {}
+}
